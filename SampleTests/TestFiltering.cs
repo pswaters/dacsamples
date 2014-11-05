@@ -77,7 +77,7 @@ namespace Public.Dac.Sample.Tests
             var model = CreateTestModel();
 
             // When deploying to production (filtering to exclude "dev" and "test" schemas)
-            var schemaFilter = new SchemaBasedFilter("dev", "test");
+            var schemaFilter = new SchemaBasedFilter(model.CollationComparer, "dev", "test");
             var filteredModel = CreateFilteredModel(schemaFilter, model);
 
             // Then expect only the "prod" schema objects to remain
@@ -143,7 +143,7 @@ namespace Public.Dac.Sample.Tests
             var model = CreateTestModel();
 
             // When filtering to include "dev" and "production" schemas
-            var schemaFilter = new SchemaBasedFilter("dev", "prod");
+            var schemaFilter = new SchemaBasedFilter(model.CollationComparer, "dev", "prod");
             schemaFilter.Filtering = SchemaBasedFilter.FilterType.Include;
 
             var filteredModel = CreateFilteredModel(schemaFilter, model);
@@ -160,7 +160,7 @@ namespace Public.Dac.Sample.Tests
             var model = CreateTestModel();
 
             // When filtering to only incude "test" filters
-            var schemaFilter = new SchemaBasedFilter("test");
+            var schemaFilter = new SchemaBasedFilter(model.CollationComparer, "test");
             schemaFilter.Filtering = SchemaBasedFilter.FilterType.Include;
 
             var filteredModel = CreateFilteredModel(schemaFilter, model);
@@ -181,7 +181,7 @@ namespace Public.Dac.Sample.Tests
             string filteredPackagePath = GetTestFilePath("filtered.dacpac");
 
             // When saving a dacpac for deployment to production (filtering to exclude "dev" and "test" schemas)
-            var schemaFilter = new SchemaBasedFilter("dev", "test");
+            var schemaFilter = new SchemaBasedFilter(model.CollationComparer, "dev", "test");
             ModelFilterer modelFilterer = new ModelFilterer(schemaFilter);
 
             modelFilterer.CreateFilteredDacpac(existingPackagePath, filteredPackagePath);
@@ -210,7 +210,7 @@ namespace Public.Dac.Sample.Tests
             BuildPackage(model, existingPackagePath);
 
             // When saving a dacpac for deployment to production (filtering to exclude "dev" and "test" schemas)
-            var schemaFilter = new SchemaBasedFilter("dev", "test");
+            var schemaFilter = new SchemaBasedFilter(model.CollationComparer, "dev", "test");
             ModelFilterer modelFilterer = new ModelFilterer(schemaFilter);
 
             modelFilterer.UpdateDacpacModelWithFilter(existingPackagePath);

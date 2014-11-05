@@ -36,16 +36,18 @@ namespace Public.Dac.Samples
         public const string PlanFiltererContributorId = "Public.Dac.Samples.PlanFilterer";
         public const string FilterNameArg = "FilterName";
 
-        private static Dictionary<string, Lazy<IFilter>> _filterMap = new Dictionary<string, Lazy<IFilter>>()
+        private static Dictionary<string, Func<TSqlModel, IFilter>> _filterMap = new Dictionary<string, Func<TSqlModel, IFilter>>()
         {
-            {"SchemaBasedFilter", new Lazy<IFilter>(() => new SchemaBasedFilter())}
+            {"SchemaBasedFilter", (model) => new SchemaBasedFilter(model.CollationComparer)}
         }; 
 
         private IFilter _filter;
 
         protected override void OnExecute(DeploymentPlanContributorContext context)
         {
-            InitializeFilter(context.Arguments);
+            // Use target model's collation since that is where we are deploying to, and hence how the 
+            // deployment should be comparing collation types
+            InitializeFilter(context.Target, context.Arguments);
             DeploymentStep next = context.PlanHandle.Head;
             while (next != null)
             {
@@ -70,15 +72,15 @@ namespace Public.Dac.Samples
             return !_filter.Filter(new[] {createdObject}).Any();
         }
 
-        private void InitializeFilter(Dictionary<string, string> arguments)
+        private void InitializeFilter(TSqlModel model, Dictionary<string, string> arguments)
         {
             string filterName;
             if (arguments.TryGetValue(FilterNameArg, out filterName)
                 && _filterMap.ContainsKey(filterName))
             {
                 // Note: could use MEF or some other lookup technique to find a specific filter. If you
-                // just have a few known filters, a map like this might be a good idea
-                _filter = _filterMap[filterName].Value;
+                // just have a few known filters, a map like this might be a good idea                
+                _filter = _filterMap[filterName](model);
                 _filter.Initialize(arguments);
             }
         }

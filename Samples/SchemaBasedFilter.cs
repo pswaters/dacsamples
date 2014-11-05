@@ -40,15 +40,15 @@ namespace Public.Dac.Samples
             Include
         }
 
+        private ModelCollationComparer _collationComparer;
         private HashSet<string> _schemaNames;
 
         /// <summary>
         /// Creates a filter for the specified <paramref name="schemaNames"/>, with the
         /// default filtering behavior to remove objects with the given schema names.
         /// </summary>
-        /// <param name="schemaNames"></param>
-        public SchemaBasedFilter(params string[] schemaNames)
-            : this((IList<string>) schemaNames)
+        public SchemaBasedFilter(ModelCollationComparer collationComparer, params string[] schemaNames)
+            : this(collationComparer, (IList<string>) schemaNames)
         {
         }
 
@@ -56,9 +56,13 @@ namespace Public.Dac.Samples
         /// Creates a filter for the specified <paramref name="schemaNames"/>, with the
         /// default filtering behavior to remove objects with the given schema names.
         /// </summary>
-        /// <param name="schemaNames"></param>
-        public SchemaBasedFilter(IList<string> schemaNames)
+        public SchemaBasedFilter(ModelCollationComparer collationComparer, IList<string> schemaNames)
         {
+            if(collationComparer == null)
+            {
+                throw new ArgumentNullException("collationComparer");
+            }
+            _collationComparer = collationComparer;
             _schemaNames = new HashSet<string>(schemaNames);
             Filtering = FilterType.Exclude;
         }
@@ -105,7 +109,8 @@ namespace Public.Dac.Samples
             {
                 // Assuming schema name is always the first part. 
                 string schemaName = id.Parts[0];
-                found = _schemaNames.Contains(schemaName, StringComparer.OrdinalIgnoreCase);
+                // Compare using th 
+                found = _schemaNames.Contains(schemaName, _collationComparer);
             }
 
             if (Filtering == FilterType.Exclude)

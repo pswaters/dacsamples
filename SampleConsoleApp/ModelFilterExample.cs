@@ -66,6 +66,7 @@ namespace Public.Dac.Samples.App
             // Given a model with objects that use "dev", "test" and "prod" schemas
             string devPackagePath = GetFilePathInCurrentDirectory("dev.dacpac");
             var scripts = SampleScripts;
+            string productionPackagePath;
             using (TSqlModel model = new TSqlModel(SqlServerVersion.Sql110, new TSqlModelOptions()))
             {
                 AddScriptsToModel(model, scripts);
@@ -76,18 +77,18 @@ namespace Public.Dac.Samples.App
 
                 Console.WriteLine("Objects found in original package: '" + devPackagePath + "'");
                 PrintTablesViewsAndSchemas(model);
-                
+
+                productionPackagePath = GetFilePathInCurrentDirectory("production.dacpac");
+
+                // When saving a dacpac for deployment to production (filtering to exclude "dev" and "test" schemas)
+                var schemaFilter = new SchemaBasedFilter(model.CollationComparer, new [] { "dev", "test" });
+                ModelFilterer modelFilterer = new ModelFilterer(schemaFilter);
+
+
+                Console.WriteLine("Creating filtered 'production' package: '" + productionPackagePath + "'");
+                modelFilterer.CreateFilteredDacpac(devPackagePath, productionPackagePath);
             }
 
-            string productionPackagePath = GetFilePathInCurrentDirectory("production.dacpac");
-
-            // When saving a dacpac for deployment to production (filtering to exclude "dev" and "test" schemas)
-            var schemaFilter = new SchemaBasedFilter("dev", "test");
-            ModelFilterer modelFilterer = new ModelFilterer(schemaFilter);
-
-            
-            Console.WriteLine("Creating filtered 'production' package: '"+productionPackagePath+"'");
-            modelFilterer.CreateFilteredDacpac(devPackagePath, productionPackagePath);
 
             // Then expect only the "prod" schema objects to remain in the new package
             using (TSqlModel filteredModel = new TSqlModel(productionPackagePath))
